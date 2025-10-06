@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--确定父项目信息-->
+    <parent>
+        <groupId>com.sangui</groupId>
+        <artifactId>sanguimallv2</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+    <modules>
+        <module>service-product</module>
+        <module>service-order</module>
+        <module>service-ware</module>
+        <module>service-coupon</module>
+        <module>service-member</module>
+    </modules>
+
+    <dependencies>
+        <!--未来可在此中加入依赖，每个具体的微服务模块都可以使用这个依赖（继承父依赖）-->
+        <!--加入 model 依赖-->
+        <dependency>
+            <groupId>com.sangui</groupId>
+            <artifactId>model</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
+    <packaging>pom</packaging>
+
+    <artifactId>services</artifactId>
+
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+</project>
