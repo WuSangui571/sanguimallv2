@@ -154,7 +154,7 @@
 
    为各个微服务模块，导入各自的数据库。
 
-   详见 https://github.com/WuSangui571/sanguimall/tree/main/sql/init ，里面的五个 sql 文件。
+   详见 https://github.com/WuSangui571/sanguimallv2/tree/main/sql/init ，里面的五个 sql 文件。
 
 2. **逆向生成代码**
 
