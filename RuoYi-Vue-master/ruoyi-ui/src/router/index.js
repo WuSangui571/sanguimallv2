@@ -161,6 +161,23 @@ export const dynamicRoutes = [
         meta: { title: '修改生成配置', activeMenu: '/tool/gen' }
       }
     ]
+  },
+  {
+    path: '/product',
+    component: Layout,
+    redirect: 'noRedirect',
+    hidden: false,
+    alwaysShow: true,
+    meta: { title: '系统管理', icon : "system" },
+    children: [{
+      path: 'category',
+      component: (resolve) => require(['@/views/product/category.vue'], resolve),
+      name: 'Test',
+      meta: {
+        title: '测试管理',
+        icon: 'user'
+      }
+    }]
   }
 ]
 

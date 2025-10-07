@@ -22,14 +22,17 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<PmsCategory> getCategoryListTree() {
-        // Step1 查出所有 List
+        // Step 1: 查询所有分类
         List<PmsCategory> pmsCategoryList = categoryMapper.selectAll();
+        if (pmsCategoryList == null || pmsCategoryList.isEmpty()) {
+            return new ArrayList<>(); // 返回空列表以处理空数据
+        }
 
-        // Step2 将查询到的 List 组装成 tree 形式
+        // Step 2: 将查询到的 List 组装成树形结构
         // Step 2.1: 创建 Map，便于 O(1) 查找
         Map<Long, PmsCategory> categoryMap = new HashMap<>();
         for (PmsCategory category : pmsCategoryList) {
-            // 确保 childCategory 不为 null（防御性检查）
+            // 确保 childCategory 不为 null
             if (category.getChildCategory() == null) {
                 category.setChildCategory(new ArrayList<>());
             }
@@ -61,18 +64,23 @@ public class CategoryServiceImpl implements CategoryService {
             }
         }
 
-         // Step 2.4: 可选 - 对子列表排序（按 catId 或其他字段）
-         for (PmsCategory root : rootCategories) {
-             sortChildren(root);
-         }
+        // Step 2.4: 对子列表按 sort 属性升序排序
+        for (PmsCategory root : rootCategories) {
+            sortChildren(root);
+        }
+
 
         return rootCategories;
     }
 
-    // 可选：递归排序子节点
+    // 递归排序子节点，按 sort 属性升序
     private void sortChildren(PmsCategory category) {
         if (category.getChildCategory() != null) {
-            category.getChildCategory().sort(Comparator.comparing(PmsCategory::getCatId));
+            // 按 sort 升序排序，sort 为 null 的放最后
+            category.getChildCategory().sort(
+                    Comparator.comparing(PmsCategory::getSort, Comparator.nullsLast(Comparator.naturalOrder()))
+            );
+            // 递归排序子节点的子节点
             for (PmsCategory child : category.getChildCategory()) {
                 sortChildren(child);
             }
