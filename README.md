@@ -15,13 +15,19 @@
 
    + 2023.0.3.2
 
-4. RuoYi-Vue
+4. MyBatis
+
+   + 3.0.5
+
+5. RuoYi-Vue
 
    + 3.9.0
 
-5. Nacos
+6. Nacos
 
-   + 
+   + 2.4.3
+
+7. 
 
    
 
@@ -178,20 +184,227 @@
 
 3. **公共化 model**
 
-   在 service 模块的同级目录上，新建一个普通 Java 模块，取名为 model，这样，就可以删除各自服务之下的 model 包了，把这些 model 统一移至 model 模块里。
+   在 service 模块的同级目录上，新建一个普通 Java 模块，取名为 common ，这样，就可以删除各自微服务之下的 model 包了，把这些 model 统一移至 common 模块里。
 
-   同时，因为 model 模块和 service 模块相对独立，就需要在 service 模块的 pom 文件中，加入 model 模块的依赖，如：
+   同时，因为 common 模块和 service 模块相对独立，就需要在 service 模块的 pom 文件中，加入对 common模块的依赖，如：
 
    ```xml
-   <!--加入 model 依赖-->
+   <!--加入 common 依赖-->
    <dependency>
        <groupId>com.sangui</groupId>
-       <artifactId>model</artifactId>
+       <artifactId>common</artifactId>
        <version>0.0.1-SNAPSHOT</version>
    </dependency>
    ```
 
-## 1.5. 若依框架
+## 1.5.编写入口程序
+
+以 order 为例，另外四个微服务类似。
+
+1. **Application**
+
+   ```java
+   package com.sangui.sanguimall.order;
+   
+   
+   import org.mybatis.spring.annotation.MapperScan;
+   import org.springframework.boot.SpringApplication;
+   import org.springframework.boot.autoconfigure.SpringBootApplication;
+   import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+   
+   /**
+    * @Author: sangui
+    * @CreateTime: 2025-10-06
+    * @Description: 订单的主入口程序
+    * @Version: 1.0
+    */
+   // MyBatis 扫描
+   @MapperScan("com.sangui.sanguimall.order.mapper")
+   // 服务发现
+   @EnableDiscoveryClient
+   @SpringBootApplication
+   public class OrderApplication {
+       public static void main(String[] args) {
+           SpringApplication.run(OrderApplication.class, args);
+       }
+   }
+   
+   ```
+
+2. **配置文件**
+
+   ```
+   server:
+     # 设置后端 SpringBoot 端口
+     port: xxxxxxxxxxxxxxxx(10000)
+     servlet:
+       context-path: /
+   
+   # 配置数据库连接相关信息
+   spring:
+     application:
+       name: xxxxxxxxxxxxxxxxxxxxxxxxxxx(service-order)
+     datasource:
+       type: com.zaxxer.hikari.HikariDataSource
+       url: jdbc:mysql://localhost:3306/xxxxxxxxxxxx(sanguimall_oms)?useUnicode=true&characterEncoding=utf8&useSSL=false
+       driver-class-name: com.mysql.cj.jdbc.Driver
+       username: root
+       password: xxxxxxxxxxxxxxxxxxxxxxx
+       hikari:
+         maximum-pool-size: 30
+         minimum-idle: 30
+         connection-timeout: 5000
+         idle-timeout: 0
+         max-lifetime: 18000000
+   
+   # 指定以下mapper.xml文件的位置
+   mybatis:
+     mapper-locations: classpath:mapper/*.xml
+   ```
+
+## 1.6. 网关
+
+1. **新建 gateway 模块**
+
+   在 service 和 common 的同级目录下，新建一个新的模块，叫做 gateway
+
+2. **添加依赖**
+
+   在新模块下中添加依赖：
+
+   ```xml
+   <dependencies>
+       <!--网关的依赖-->
+       <dependency>
+           <groupId>org.springframework.cloud</groupId>
+           <artifactId>spring-cloud-starter-gateway</artifactId>
+       </dependency>
+       <!--Nacos 注册中心也要引入-->
+       <dependency>
+           <groupId>com.alibaba.cloud</groupId>
+           <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+       </dependency>
+       <!--负载均衡也要引入-->
+       <dependency>
+           <groupId>org.springframework.cloud</groupId>
+           <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+       </dependency>
+   </dependencies>
+   ```
+
+3. **编写主入口程序**
+
+   ```java
+   package com.sangui.sanguimall.gateway;
+   
+   
+   import org.springframework.boot.SpringApplication;
+   import org.springframework.boot.autoconfigure.SpringBootApplication;
+   import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+   
+   /**
+    * @Author: sangui
+    * @CreateTime: 2025-10-06
+    * @Description: 网关主入口程序
+    * @Version: 1.0
+    */
+   // 加上注解开启发现
+   @EnableDiscoveryClient
+   @SpringBootApplication
+   public class GatewayApplication {
+       public static void main(String[] args) {
+           SpringApplication.run(GatewayApplication.class, args);
+       }
+   }
+   ```
+
+4. **编写配置文件**
+
+   ```yaml
+   spring:
+     application:
+       name: gateway
+     cloud:
+       nacos:
+         server-addr: 127.0.0.1:8848
+   server:
+     port: 80
+   ```
+
+   至此，一个网关就创建完成了，并且可以在 Nacos 配置中心中发现。
+
+5. **增加路由规则**
+
+   + 在配置文件中，添加如下规则：
+
+     ```yaml
+     spring:
+       cloud:
+         gateway:
+           routes:
+             # id 全局唯一
+             - id: coupon-route
+               # 指定服务名称，lb 是 loadBalance 的缩写，代表负载均衡
+               uri: lb://service-coupon
+               # 指定断言规则，即路由匹配规则。
+               predicates:
+                 - Path=/api/coupon/**
+                 # 可添加更多路径规则...
+                 # - Path=......
+               # 加上过滤器
+               filters:
+                 # 类似把 /api/coupon/a/bc 重写为 /a/bc，移除路径前的 /api/coupon/
+                 - RewritePath=/api/coupon/?(?<segment>.*), /$\{segment}
+               # order 代表顺序，数字越小，优先级越高
+               order: 1
+     
+             # 下一个路由规则
+             - id: member-route
+               uri: lb://service-member
+               predicates:
+                 - Path=/api/member/**
+               filters:
+                 - RewritePath=/api/member/?(?<segment>.*), /$\{segment}
+               order: 2
+     
+             # 下一个路由规则
+             - id: order-route
+               uri: lb://service-order
+               predicates:
+                 - Path=/api/order/**
+               filters:
+                 - RewritePath=/api/order/?(?<segment>.*), /$\{segment}
+               order: 3
+     
+             # 下一个路由规则
+             - id: product-route
+               uri: lb://service-product
+               predicates:
+                 - Path=/api/product/**
+               filters:
+                 - RewritePath=/api/product/?(?<segment>.*), /$\{segment}
+               order: 4
+     
+             # 下一个路由规则
+             - id: ware-route
+               uri: lb://service-ware
+               predicates:
+                 - Path=/api/ware/**
+               filters:
+                 - RewritePath=/api/ware/?(?<segment>.*), /$\{segment}
+               order: 5
+     ```
+
+     当然，这些东西写在 application.yaml 里可能会使配置文件比较臃肿，可以为此新建一个 application-route.yaml 文件，在原配置文件中加入如下内容，即可导入配置：
+
+     ```yaml
+     spring:
+       profiles:
+       	# 自动去找同目录下的 application-route.yaml 文件
+         include: route
+     ```
+
+## 1.6. 若依框架
 
 我们的商城的后台管理系统的前端和后台，使用开源项目：RuoYi-Vue。
 

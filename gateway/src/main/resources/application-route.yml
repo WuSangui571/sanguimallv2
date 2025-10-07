@@ -1,0 +1,56 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        # id 全局唯一
+        - id: coupon-route
+          # 指定服务名称，lb 是 loadBalance 的缩写，代表负载均衡
+          uri: lb://service-coupon
+          # 指定断言规则，即路由匹配规则。
+          predicates:
+            - Path=/api/coupon/**
+            # 可添加更多路径规则...
+            # - Path=......
+          # 加上过滤器
+          filters:
+            # 类似把 /api/coupon/a/bc 重写为 /a/bc，移除路径前的 /api/coupon/
+            - RewritePath=/api/coupon/?(?<segment>.*), /$\{segment}
+          # order 代表顺序，数字越小，优先级越高
+          order: 1
+
+        # 下一个路由规则
+        - id: member-route
+          uri: lb://service-member
+          predicates:
+            - Path=/api/member/**
+          filters:
+            - RewritePath=/api/member/?(?<segment>.*), /$\{segment}
+          order: 2
+
+        # 下一个路由规则
+        - id: order-route
+          uri: lb://service-order
+          predicates:
+            - Path=/api/order/**
+          filters:
+            - RewritePath=/api/order/?(?<segment>.*), /$\{segment}
+          order: 3
+
+        # 下一个路由规则
+        - id: product-route
+          uri: lb://service-product
+          predicates:
+            - Path=/api/product/**
+          filters:
+            - RewritePath=/api/product/?(?<segment>.*), /$\{segment}
+          order: 4
+
+        # 下一个路由规则
+        - id: ware-route
+          uri: lb://service-ware
+          predicates:
+            - Path=/api/ware/**
+          filters:
+            - RewritePath=/api/ware/?(?<segment>.*), /$\{segment}
+          order: 5
+

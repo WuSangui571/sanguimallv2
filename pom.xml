@@ -13,7 +13,8 @@
     <modules>
         <module>services</module>
         <module>services</module>
-        <module>model</module>
+        <module>common</module>
+        <module>gateway</module>
     </modules>
 
     <!--确定项目信息-->

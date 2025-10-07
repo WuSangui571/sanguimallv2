@@ -20,10 +20,10 @@
 
     <dependencies>
         <!--未来可在此中加入依赖，每个具体的微服务模块都可以使用这个依赖（继承父依赖）-->
-        <!--加入 model 依赖-->
+        <!--加入 common 依赖-->
         <dependency>
             <groupId>com.sangui</groupId>
-            <artifactId>model</artifactId>
+            <artifactId>common</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <!--lombok-->

@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: gateway
+  cloud:
+    nacos:
+      server-addr: 127.0.0.1:8848
+  profiles:
+    # 自动去找同目录下的 application-route.yaml 文件
+    include: route
+server:
+  port: 80

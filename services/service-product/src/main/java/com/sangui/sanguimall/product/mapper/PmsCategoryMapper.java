@@ -2,6 +2,8 @@ package com.sangui.sanguimall.product.mapper;
 
 import com.sangui.sanguimall.product.model.PmsCategory;
 
+import java.util.List;
+
 public interface PmsCategoryMapper {
     int deleteByPrimaryKey(Long catId);
 
@@ -14,4 +16,6 @@ public interface PmsCategoryMapper {
     int updateByPrimaryKeySelective(PmsCategory record);
 
     int updateByPrimaryKey(PmsCategory record);
+
+    List<PmsCategory> selectAll();
 }

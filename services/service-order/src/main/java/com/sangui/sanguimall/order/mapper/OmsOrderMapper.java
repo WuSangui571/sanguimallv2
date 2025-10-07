@@ -2,6 +2,8 @@ package com.sangui.sanguimall.order.mapper;
 
 import com.sangui.sanguimall.order.model.OmsOrder;
 
+import java.util.List;
+
 public interface OmsOrderMapper {
     int deleteByPrimaryKey(Long id);
 
@@ -14,4 +16,6 @@ public interface OmsOrderMapper {
     int updateByPrimaryKeySelective(OmsOrder record);
 
     int updateByPrimaryKey(OmsOrder record);
+
+    List<OmsOrder> selectAll();
 }
